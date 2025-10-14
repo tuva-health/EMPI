@@ -106,6 +106,8 @@ def get_persons(request: Request) -> Response:
     filters = {k: v for k, v in data.items() if k not in {"page", "page_size"}}
     if "person_id" in filters:
         filters["person_id"] = remove_prefix(filters["person_id"])
+    page, page_size = pagination.get_pagination_params(data)
+    filters = filters | pagination.get_skip_take(data)
 
     try:
         persons = empi.get_persons(**filters)
@@ -114,8 +116,6 @@ def get_persons(request: Request) -> Response:
             error_data("Unexpected internal error"),
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-    page, page_size = pagination.get_pagination_params(data)
 
     results = [
         {
@@ -128,7 +128,10 @@ def get_persons(request: Request) -> Response:
     ]
 
     return pagination.create_paginated_response(
-        results, page, page_size, response_key="persons"
+        results,
+        page,
+        page_size,
+        response_key="persons",
     )
 
 

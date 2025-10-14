@@ -124,8 +124,9 @@ def get_potential_matches(request: Request) -> Response:
         filters["person_id"] = remove_prefix(filters["person_id"])
 
     try:
-        results = empi.get_potential_matches(**filters)
         page, page_size = pagination.get_pagination_params(data)
+        filters = filters | pagination.get_skip_take(data)
+        results = empi.get_potential_matches(**filters)
 
         transformed = [
             {**pm, "id": get_object_id(pm["id"], "PotentialMatch")} for pm in results
@@ -220,8 +221,6 @@ def get_potential_match(request: Request, id: str) -> Response:
                 "pagination": {
                     "page": page,
                     "page_size": page_size,
-                    "total_count": total,
-                    "total_pages": (total + page_size - 1) // page_size,
                     "has_next": page * page_size < total,
                     "has_previous": page > 1,
                     "next_page": page + 1 if page * page_size < total else None,

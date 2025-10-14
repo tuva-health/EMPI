@@ -60,7 +60,7 @@ class PotentialMatchesTestCase(TestCase):
         response = self.client.get(url, query_params)
 
         mock_empi_obj.get_potential_matches.assert_called_once_with(
-            **{**query_params, "person_id": "123"}
+            **{**query_params, "person_id": "123", "skip": 0, "take": 51}
         )
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(
@@ -70,8 +70,6 @@ class PotentialMatchesTestCase(TestCase):
                 "pagination": {
                     "page": 1,
                     "page_size": 50,
-                    "total_count": 1,
-                    "total_pages": 1,
                     "has_next": False,
                     "has_previous": False,
                     "next_page": None,
@@ -99,7 +97,7 @@ class PotentialMatchesTestCase(TestCase):
         query_params: Mapping[str, str] = {}
         response = self.client.get(url, query_params)
 
-        mock_empi_obj.get_potential_matches.assert_called_once_with(**query_params)
+        mock_empi_obj.get_potential_matches.assert_called_once_with(skip=0, take=51)
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(
             response.json(),
@@ -108,8 +106,6 @@ class PotentialMatchesTestCase(TestCase):
                 "pagination": {
                     "page": 1,
                     "page_size": 50,
-                    "total_count": 1,
-                    "total_pages": 1,
                     "has_next": False,
                     "has_previous": False,
                     "next_page": None,
@@ -136,8 +132,6 @@ class PotentialMatchesTestCase(TestCase):
                 "pagination": {
                     "page": 1,
                     "page_size": 50,
-                    "total_count": 0,
-                    "total_pages": 0,
                     "has_next": False,
                     "has_previous": False,
                     "next_page": None,

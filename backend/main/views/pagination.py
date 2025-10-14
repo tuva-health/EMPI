@@ -12,6 +12,16 @@ class PaginationMixin:
     DEFAULT_PAGE_SIZE = 50
     MAX_PAGE_SIZE = 1000
 
+    def get_skip_take(
+        self,
+        data: Dict[str, Any],
+    ) -> Dict[str, int]:
+        """Extract skip and take values from request data."""
+        (page, page_size) = self.get_pagination_params(data)
+        skip = (page - 1) * page_size
+        take = page_size + 1  # Fetch one extra to check for next page
+        return {"skip": skip, "take": take}
+
     def get_pagination_params(self, data: Dict[str, Any]) -> tuple[int, int]:
         """Extract pagination parameters from request data."""
         page = data.get("page", 1)
@@ -23,23 +33,18 @@ class PaginationMixin:
     def paginate_list(
         self, items: List[Any], page: int, page_size: int
     ) -> Dict[str, Any]:
-        """Paginate a list of items and return pagination metadata."""
-        total_count = len(items)
-        start_index = (page - 1) * page_size
-        end_index = start_index + page_size
-        paginated_items = items[start_index:end_index]
+        """Return pagination metadata for a list of items.
 
-        total_pages = (total_count + page_size - 1) // page_size
-        has_next = page < total_pages
+        This assumes that `items` is longer than `page_size` if there is a next page.
+        """
+        has_next = len(items) > page_size
         has_previous = page > 1
 
         return {
-            "items": paginated_items,
+            "items": items[0:page_size],
             "pagination": {
                 "page": page,
                 "page_size": page_size,
-                "total_count": total_count,
-                "total_pages": total_pages,
                 "has_next": has_next,
                 "has_previous": has_previous,
                 "next_page": page + 1 if has_next else None,
@@ -48,9 +53,16 @@ class PaginationMixin:
         }
 
     def create_paginated_response(
-        self, items: List[Any], page: int, page_size: int, response_key: str = "items"
+        self,
+        items: List[Any],
+        page: int,
+        page_size: int,
+        response_key: str = "items",
     ) -> Response:
-        """Create a paginated response with standard format."""
+        """Create a paginated response with standard format.
+
+        This assumes that `items` is longer than `page_size` if there is a next page.
+        """
         paginated_data = self.paginate_list(items, page, page_size)
 
         return Response(

@@ -445,6 +445,8 @@ class EMPIService:
         person_id: str = "",
         source_person_id: str = "",
         data_source: str = "",
+        skip: int | None = None,
+        take: int | None = None,
     ) -> list[PotentialMatchSummaryDict]:
         self.logger.info("Retrieving potential matches")
 
@@ -525,7 +527,9 @@ class EMPIService:
                         array_agg(distinct data_source order by data_source) AS data_sources,
                         (array_agg(match_probability order by match_probability desc))[1] as max_match_probability
                     from mg_records
-                    group by id;
+                    group by id
+                    {offset}
+                    {limit}
                 """
             ).format(
                 match_group_table=sql.Identifier(match_group_table),
@@ -533,6 +537,8 @@ class EMPIService:
                 person_record_table=sql.Identifier(person_record_table),
                 person_table=sql.Identifier(person_table),
                 search_conditions=sql.SQL(" ").join(search_conditions["conditions"]),
+                limit=sql.SQL(f"limit {int(take)}" if take is not None else ""),
+                offset=sql.SQL(f"offset {int(skip)}" if skip is not None else ""),
             )
             cursor.execute(get_potential_matches_sql, search_conditions["params"])
 
@@ -722,7 +728,7 @@ class EMPIService:
             records_clause = f"""
                 array_agg(
                     jsonb_build_object(
-                        {', '.join(field_mappings)}
+                        {", ".join(field_mappings)}
                     )
                 ) as records
             """
@@ -1236,9 +1242,9 @@ class EMPIService:
         self.logger.info(f"Marked MatchGroup {match_group.id} as matched")
 
     def validate_person_update(self, person_update: PersonUpdateDict) -> bool:
-        assert (
-            "new_person_record_ids" in person_update
-        ), "new_person_record_ids is required in PersonUpdate"
+        assert "new_person_record_ids" in person_update, (
+            "new_person_record_ids is required in PersonUpdate"
+        )
 
         if person_update.get("uuid") and not person_update.get("version"):
             raise InvalidPersonUpdate(
@@ -1503,6 +1509,8 @@ class EMPIService:
         person_id: str = "",
         source_person_id: str = "",
         data_source: str = "",
+        skip: int | None = None,
+        take: int | None = None,
     ) -> list[PersonSummaryDict]:
         self.logger.info("Retrieving persons")
 
@@ -1549,7 +1557,9 @@ class EMPIService:
                         array_agg(distinct data_source) AS data_sources
                     from p_records
                     group by uuid
-                    order by last_name, first_name;
+                    order by last_name, first_name
+                    {offset}
+                    {limit};
                 """
             ).format(
                 match_group_table=sql.Identifier(match_group_table),
@@ -1557,6 +1567,8 @@ class EMPIService:
                 person_record_table=sql.Identifier(person_record_table),
                 person_table=sql.Identifier(person_table),
                 search_conditions=sql.SQL(" ").join(search_conditions["conditions"]),
+                limit=sql.SQL(f"limit {int(take)}" if take is not None else ""),
+                offset=sql.SQL(f"offset {int(skip)}" if skip is not None else ""),
             )
             cursor.execute(get_persons_sql, search_conditions["params"])
 
