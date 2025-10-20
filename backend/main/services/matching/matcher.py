@@ -920,17 +920,16 @@ class Matcher:
         job: Job,
         potential_match_result_df: SplinkResultDF,
     ) -> PersonCrosswalkDF:
-        """Get PersonRecordPersons and lock PersonRecord/Person rows related to potential-match Results.
-
-        We want to lock:
-        - Person rows if they connect two or more ResultGroups (directly connected Results),
-          so that we can create MatchGroups correctly.
-
-        - Person rows related to auto-match results, so that we can update the related
-          PersonRecords/Persons correctly.
-
-        To simplify things, we just lock Person rows that relate to potential-match results
-        as that is a superset of the Person rows described above.
+        """
+        Extracts a crosswalk of Persons and PersonRecords referenced by potential match results and locks those PersonRecord and Person rows.
+        
+        Locks PersonRecord and Person rows for the person_record IDs found in potential_match_result_df to prevent concurrent modifications while match groups and person updates are prepared.
+        
+        Parameters:
+            potential_match_result_df (DataFrame): DataFrame of potential-match results that contains `person_record_l_id` and `person_record_r_id`.
+        
+        Returns:
+            DataFrame: Rows mapping locked Person fields (`id`, `created`, `version`, `record_count`) to `person_record_id`.
         """
         self.logger.info(
             "Extracting Person crosswalk and locking MatchGroups, Persons and PersonRecords"
@@ -1925,6 +1924,11 @@ class Matcher:
             ) from e
 
     def process_next_job(self) -> None:
+        """
+        Process the next pending import_person_records job from the database, perform matching, and clean up.
+        
+        This method acquires an advisory lock to serialize job processing, opens a durable database transaction, selects the oldest Job with status `new` and type `import_person_records`, and if found runs the full processing pipeline (process_job), marks the Job as succeeded, and deletes its staging records. On any unexpected error it logs the failure and delegates recovery to `cleanup_failed_job`. Regardless of success or failure, it runs a database vacuum in a finally block to reclaim space.
+        """
         job: Optional[Job] = None
 
         try:

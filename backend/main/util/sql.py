@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 def vacuum_db(cursor: CursorWrapper) -> None:
+    """
+    Run PostgreSQL's `VACUUM ANALYZE` on the database connected to the provided cursor.
+    
+    Parameters:
+        cursor (CursorWrapper): Database cursor used to execute the VACUUM ANALYZE command.
+    """
     stmt = sql.SQL("vacuum analyze;")
     cursor.execute(stmt)
 
@@ -20,6 +26,16 @@ def vacuum_db(cursor: CursorWrapper) -> None:
 def create_temp_table(
     cursor: CursorWrapper, table: str, columns: list[tuple[str, str, str]]
 ) -> None:
+    """
+    Create a temporary PostgreSQL table that is dropped at transaction commit.
+    
+    Parameters:
+        table (str): Name of the temporary table to create.
+        columns (list[tuple[str, str, str]]): Sequence of column definitions where each tuple is
+            (column_name, column_type_sql, constraints_sql). `column_type_sql` is the SQL type
+            expression (e.g., "integer", "text"), and `constraints_sql` is an SQL constraints
+            fragment (e.g., "NOT NULL", "DEFAULT 0") or an empty string for no constraints.
+    """
     stmt = sql.SQL("create temporary table {table} ({columns}) on commit drop").format(
         table=sql.Identifier(table),
         columns=sql.SQL(",").join(
@@ -84,6 +100,11 @@ def drop_column(cursor: CursorWrapper, table: str, column: str) -> None:
 def create_index(
     cursor: CursorWrapper, table: str, column: str, index_name: str
 ) -> None:
+    """
+    Create an index on the given table column and update the table's planner statistics.
+    
+    Creates the index named `index_name` on `table`(`column`) and runs ANALYZE on the table so the query planner has up-to-date statistics.
+    """
     stmt = sql.SQL("create index {index_name} on {table} ({column})").format(
         index_name=sql.Identifier(index_name),
         table=sql.Identifier(table),
@@ -103,6 +124,14 @@ def load_data(
     data: Iterable[Mapping[str, object]],
     col_names: Collection[str],
 ) -> None:
+    """
+    Copy an iterable of row mappings into a PostgreSQL table using the COPY FROM STDIN CSV protocol.
+    
+    Parameters:
+        table_name (str): Target table to receive the rows.
+        data (Iterable[Mapping[str, object]]): Iterable of row mappings where each mapping's keys are column names. Only keys listed in `col_names` are written; extra keys are ignored.
+        col_names (Collection[str]): Column names and order to use when writing CSV rows.
+    """
     buffer = io.BytesIO()
     text_io = io.TextIOWrapper(buffer, encoding="utf-8", newline="", write_through=True)
     writer = csv.DictWriter(text_io, fieldnames=col_names, extrasaction="ignore")
