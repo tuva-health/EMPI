@@ -169,6 +169,42 @@ class MatchingServiceConfig(BaseModel):
         return self
 
 
+class S3StorageConfig(BaseModel):
+    bucket_name: str
+    region: str = "us-east-1"
+    access_key_id: Optional[str] = None
+    secret_access_key: Optional[str] = None
+    endpoint_url: Optional[str] = None  # For LocalStack or custom endpoints
+
+
+class AzureBlobStorageConfig(BaseModel):
+    account_name: Optional[str] = None  # Can be null if provided via environment variables
+    account_key: Optional[str] = None
+    connection_string: Optional[str] = None
+    container_name: str
+    endpoint_url: Optional[str] = None  # For Azure Stack or custom endpoints
+
+
+class StorageBackendType(Enum):
+    s3 = "s3"
+    azure_blob = "azure_blob"
+
+
+class StorageConfig(BaseModel):
+    backend: StorageBackendType  # Required: explicit backend selection
+    s3: Optional[S3StorageConfig] = None
+    azure_blob: Optional[AzureBlobStorageConfig] = None
+
+    @model_validator(mode="after")
+    def validate_backend_config(self) -> "StorageConfig":
+        """Validate that the selected backend has the required configuration."""
+        if self.backend == StorageBackendType.s3 and self.s3 is None:
+            raise ValueError("S3 configuration is required when backend is s3")
+        if self.backend == StorageBackendType.azure_blob and self.azure_blob is None:
+            raise ValueError("Azure Blob Storage configuration is required when backend is azure_blob")
+        return self
+
+
 class AppConfig(BaseSettings):
     env: str
     version: str
@@ -177,6 +213,7 @@ class AppConfig(BaseSettings):
     idp: IdpConfig
     initial_setup: InitialSetupConfig
     matching_service: MatchingServiceConfig
+    storage: Optional[StorageConfig] = None
 
     model_config = SettingsConfigDict(
         env_prefix="TUVA_EMPI_", env_nested_delimiter="__"

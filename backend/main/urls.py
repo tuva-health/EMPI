@@ -12,6 +12,11 @@ from main.views.potential_matches import (
     get_potential_match,
     get_potential_matches,
 )
+from main.views.storage import (
+    get_configured_storage_backends,
+    get_storage_backend_info,
+    test_storage_backend,
+)
 from main.views.users import get_users, update_user
 
 urlpatterns = [
@@ -32,6 +37,9 @@ urlpatterns = [
     path("matches", create_match, name="create_match"),
     path("persons", get_persons, name="get_persons"),
     path("persons/<str:id>", get_person, name="get_person"),
+    path("storage/backends", get_configured_storage_backends, name="get_configured_storage_backends"),
+    path("storage/info", get_storage_backend_info, name="get_storage_backend_info"),
+    path("storage/test", test_storage_backend, name="test_storage_backend"),
     path("schema", SpectacularAPIView.as_view(), name="schema"),
     path("docs", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]

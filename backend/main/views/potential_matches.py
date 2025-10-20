@@ -92,11 +92,23 @@ class GetPotentialMatchResponse(Serializer):
 
 class ExportPotentialMatchesRequest(Serializer):
     s3_uri = serializers.CharField(required=False, allow_blank=True)
+    azure_blob_uri = serializers.CharField(required=False, allow_blank=True)
+    storage_uri = serializers.CharField(required=False, allow_blank=True)
     estimate = serializers.BooleanField(required=False, default=False)
 
     def validate_s3_uri(self, value: str) -> str:
         if value and not value.startswith("s3://"):
             raise serializers.ValidationError("S3 URI must start with 's3://'")
+        return value
+
+    def validate_azure_blob_uri(self, value: str) -> str:
+        if value and not (value.startswith("abfs://") or value.startswith("azure://")):
+            raise serializers.ValidationError("Azure Blob URI must start with 'abfs://' or 'azure://'")
+        return value
+
+    def validate_storage_uri(self, value: str) -> str:
+        if value and not (value.startswith("s3://") or value.startswith("abfs://") or value.startswith("azure://")):
+            raise serializers.ValidationError("Storage URI must start with 's3://', 'abfs://', or 'azure://'")
         return value
 
 
@@ -268,7 +280,7 @@ def export_potential_matches(request: Request) -> Union[Response, FileResponse]:
 
     Modes:
     - Estimate only
-    - S3 export (background job)
+    - Storage export (background job) - S3, Azure Blob Storage
     - Direct file download
     """
     serializer = ExportPotentialMatchesRequest(data=request.data)
@@ -287,13 +299,20 @@ def export_potential_matches(request: Request) -> Union[Response, FileResponse]:
                 }
             )
 
-        elif data.get("s3_uri"):
-            job = empi.create_export_job(config_id=1, sink_uri=data["s3_uri"])
+        # Determine the storage URI from the provided options
+        storage_uri = (
+            data.get("s3_uri") or
+            data.get("azure_blob_uri") or
+            data.get("storage_uri")
+        )
+
+        if storage_uri:
+            job = empi.create_export_job(config_id=1, sink_uri=storage_uri)
             return Response(
                 {
                     "job_id": job.id,
                     "status": job.status,
-                    "message": f"Export job {job.id} created for S3 export to {data['s3_uri']}",
+                    "message": f"Export job {job.id} created for storage export to {storage_uri}",
                 },
                 status=status.HTTP_202_ACCEPTED,
             )
