@@ -108,7 +108,6 @@ class PersonRecordStaging(models.Model):
                 name="main_personrecordstg_rownum",
                 condition=models.Q(sha256__isnull=False),
             ),
-            models.Index(fields=["id"]),
         ]
 
 
@@ -127,9 +126,6 @@ class Person(models.Model):
             models.CheckConstraint(
                 check=models.Q(record_count__gte=0), name="record_count_gte_zero"
             )
-        ]
-        indexes = [
-            models.Index(fields=["id"]),
         ]
 
 
@@ -166,7 +162,6 @@ class PersonRecord(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["data_source"]),
-            models.Index(fields=["id"]),
             models.Index(
                 fields=["sha256"],
                 name="main_person_sha256",
