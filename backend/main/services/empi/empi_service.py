@@ -549,8 +549,9 @@ class EMPIService:
                         (array_agg(match_probability order by match_probability desc))[1] as max_match_probability
                     from mg_records
                     group by id
-                    {offset}
+                    order by id
                     {limit}
+                    {offset}
                 """
             ).format(
                 match_group_table=sql.Identifier(match_group_table),
@@ -1604,9 +1605,9 @@ class EMPIService:
                         array_agg(distinct data_source) AS data_sources
                     from p_records
                     group by uuid
-                    order by last_name, first_name
+                    order by last_name, first_name, uuid
+                    {limit}
                     {offset}
-                    {limit};
                 """
             ).format(
                 match_group_table=sql.Identifier(match_group_table),
