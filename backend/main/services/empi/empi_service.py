@@ -462,6 +462,7 @@ class EMPIService:
             source_person_id=source_person_id,
             data_source=data_source,
         )
+        offset, limit = self._format_pagination_clauses(skip, take)
 
         with connection.cursor() as cursor:
             # TODO: We should consider creating a MatchGroupPerson table to make lookups simpler,
@@ -537,8 +538,8 @@ class EMPIService:
                 person_record_table=sql.Identifier(person_record_table),
                 person_table=sql.Identifier(person_table),
                 search_conditions=sql.SQL(" ").join(search_conditions["conditions"]),
-                limit=sql.SQL(f"limit {int(take)}" if take is not None else ""),
-                offset=sql.SQL(f"offset {int(skip)}" if skip is not None else ""),
+                limit=limit,
+                offset=offset,
             )
             cursor.execute(get_potential_matches_sql, search_conditions["params"])
 
@@ -1527,6 +1528,7 @@ class EMPIService:
             data_source=data_source,
         )
 
+        offset, limit = self._format_pagination_clauses(skip, take)
         with connection.cursor() as cursor:
             get_persons_sql = sql.SQL(
                 """
@@ -1567,8 +1569,8 @@ class EMPIService:
                 person_record_table=sql.Identifier(person_record_table),
                 person_table=sql.Identifier(person_table),
                 search_conditions=sql.SQL(" ").join(search_conditions["conditions"]),
-                limit=sql.SQL(f"limit {int(take)}" if take is not None else ""),
-                offset=sql.SQL(f"offset {int(skip)}" if skip is not None else ""),
+                offset=offset,
+                limit=limit,
             )
             cursor.execute(get_persons_sql, search_conditions["params"])
 
@@ -2068,3 +2070,11 @@ class EMPIService:
             )
 
             return estimated_count
+
+    def _format_pagination_clauses(
+        self, skip: int | None, take: int | None
+    ) -> tuple[sql.SQL, sql.SQL]:
+        """Format OFFSET and LIMIT SQL clauses for pagination."""
+        limit_clause = sql.SQL(f"limit {int(take)}" if take is not None else "")
+        offset_clause = sql.SQL(f"offset {int(skip)}" if skip is not None else "")
+        return offset_clause, limit_clause
