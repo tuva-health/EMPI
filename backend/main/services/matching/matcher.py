@@ -591,13 +591,13 @@ class Matcher:
             # Rule queries are combined with 'union all'.
             rules.append(
                 {
-                    "blocking_rule": f"({rule["blocking_rule"]}) and l.job_id = {job.id}",
+                    "blocking_rule": f"({rule['blocking_rule']}) and l.job_id = {job.id}",
                     "sql_dialect": self.splink_settings_overrides["sql_dialect"],
                 }
             )
             rules.append(
                 {
-                    "blocking_rule": f"({rule["blocking_rule"]}) and r.job_id = {job.id}",
+                    "blocking_rule": f"({rule['blocking_rule']}) and r.job_id = {job.id}",
                     "sql_dialect": self.splink_settings_overrides["sql_dialect"],
                 }
             )

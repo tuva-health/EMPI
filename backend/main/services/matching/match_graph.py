@@ -132,9 +132,9 @@ class MatchGraph:
             ("person_record_l_id", "int64"),
             ("person_record_r_id", "int64"),
         ]
-        assert (
-            actual_result_dtypes == expected_result_dtypes
-        ), f"Expected: {expected_result_dtypes}\nActual: {actual_result_dtypes}"
+        assert actual_result_dtypes == expected_result_dtypes, (
+            f"Expected: {expected_result_dtypes}\nActual: {actual_result_dtypes}"
+        )
 
         actual_person_dtypes = [(k, str(v)) for k, v in persons.dtypes.items()]
         expected_person_dtypes = [
@@ -144,9 +144,9 @@ class MatchGraph:
             ("record_count", "int64"),
             ("person_record_id", "int64"),
         ]
-        assert (
-            actual_person_dtypes == expected_person_dtypes
-        ), f"Expected: {expected_person_dtypes}\nActual: {actual_person_dtypes}"
+        assert actual_person_dtypes == expected_person_dtypes, (
+            f"Expected: {expected_person_dtypes}\nActual: {actual_person_dtypes}"
+        )
 
         if results.empty:
             raise Exception("results must not be empty")
@@ -216,9 +216,9 @@ class MatchGraph:
                 result[SplinkResultPartialRowField.person_record_r_id.value]
             )
 
-            assert (
-                node_3 is not None and node_4 is not None
-            ), "PersonCrosswalk must contain a Person for each PersonRecord referenced in the Splink results"
+            assert node_3 is not None and node_4 is not None, (
+                "PersonCrosswalk must contain a Person for each PersonRecord referenced in the Splink results"
+            )
 
             self.graph.add_edge(
                 node_3,
