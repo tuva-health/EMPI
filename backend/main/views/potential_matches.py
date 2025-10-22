@@ -112,11 +112,10 @@ class ExportPotentialMatchesRequest(Serializer):
 )
 @api_view(["GET"])
 def get_potential_matches(request: Request) -> Response:
-    """
-    Retrieve potential match summaries filtered by query parameters and return them in a paginated response.
-    
+    """Retrieve potential match summaries filtered by query parameters and return them in a paginated response.
+
     Applies query filters (page and page_size control pagination); if a `person_id` filter is present its known prefix is removed before querying. The response body contains a paginated collection under the `potential_matches` key.
-    
+
     Returns:
         Response: A paginated HTTP response with `potential_matches` (list of potential match summary objects) on success, or a 500 error response on unexpected failure.
     """
@@ -154,11 +153,10 @@ def get_potential_matches(request: Request) -> Response:
 )
 @api_view(["GET"])
 def get_potential_match(request: Request, id: str) -> Response:
-    """
-    Retrieve detailed information for a specific potential match.
-    
+    """Retrieve detailed information for a specific potential match.
+
     Accepts query parameters `fields` (comma-separated fields to include), `include_metadata` (whether to include pagination and metadata), `page`, and `page_size` to paginate the list of associated persons. When `include_metadata` is true the response includes a `pagination` object with `page`, `page_size`, `has_next`, `has_previous`, `next_page`, and `previous_page`, and a `metadata` object describing request/response characteristics; when false the response contains only the `potential_match` object. The `potential_match_id` must conform to the serializer's validation (it must start with "pm_"). Sets Cache-Control and ETag headers on successful responses.
-    
+
     Returns:
         Response: 200 with a JSON body containing `potential_match` (and optional `pagination`/`metadata`), 404 if the potential match is not found, or 500 for unexpected errors.
     """

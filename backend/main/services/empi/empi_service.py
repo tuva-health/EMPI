@@ -448,26 +448,25 @@ class EMPIService:
         skip: int | None = None,
         take: int | None = None,
     ) -> list[PotentialMatchSummaryDict]:
-        """
-        Retrieve aggregated potential match summaries that match the provided search criteria.
-        
+        """Retrieve aggregated potential match summaries that match the provided search criteria.
+
         Parameters:
-        	first_name (str): Filter by person first name (partial match).
-        	last_name (str): Filter by person last name (partial match).
-        	birth_date (str): Filter by birth date (ISO date string).
-        	person_id (str): Filter by internal person UUID.
-        	source_person_id (str): Filter by external/source person identifier.
-        	data_source (str): Filter by data source name.
-        	skip (int | None): Number of results to skip (pagination offset).
-        	take (int | None): Maximum number of results to return (pagination limit).
-        
+                first_name (str): Filter by person first name (partial match).
+                last_name (str): Filter by person last name (partial match).
+                birth_date (str): Filter by birth date (ISO date string).
+                person_id (str): Filter by internal person UUID.
+                source_person_id (str): Filter by external/source person identifier.
+                data_source (str): Filter by data source name.
+                skip (int | None): Number of results to skip (pagination offset).
+                take (int | None): Maximum number of results to return (pagination limit).
+
         Returns:
-        	list[PotentialMatchSummaryDict]: A list of aggregated potential match summaries, each containing at least:
-        	- id: MatchGroup identifier
-        	- first_name: Representative first name for the match group
-        	- last_name: Representative last name for the match group
-        	- data_sources: List of distinct data sources present in the match group
-        	- max_match_probability: Highest match probability observed within the group
+                list[PotentialMatchSummaryDict]: A list of aggregated potential match summaries, each containing at least:
+                - id: MatchGroup identifier
+                - first_name: Representative first name for the match group
+                - last_name: Representative last name for the match group
+                - data_sources: List of distinct data sources present in the match group
+                - max_match_probability: Highest match probability observed within the group
         """
         self.logger.info("Retrieving potential matches")
 
@@ -582,17 +581,16 @@ class EMPIService:
         match_group_id: int,
         fields: str = "id,first_name,last_name,data_source",
     ) -> list[PersonDict]:
-        """
-        Fetch persons involved in a potential match and return each as a PersonDict with selected record fields.
-        
+        """Fetch persons involved in a potential match and return each as a PersonDict with selected record fields.
+
         Parameters:
             cursor (CursorWrapper): Database cursor positioned for executing the query.
             match_group_id (int): ID of the match group to retrieve persons for.
             fields (str): Comma-separated list of allowed record fields to include for each person (defaults to "id,first_name,last_name,data_source").
-        
+
         Returns:
             list[PersonDict]: List of persons; each dict contains `uuid`, `created`, `version`, and `records` where `records` is a list of JSON objects with the requested fields.
-        
+
         Raises:
             ValueError: If any requested field is not in the whitelist of allowed fields.
         """
@@ -1541,9 +1539,8 @@ class EMPIService:
         skip: int | None = None,
         take: int | None = None,
     ) -> list[PersonSummaryDict]:
-        """
-        Retrieve summarized persons that match the given search filters and return them with optional pagination.
-        
+        """Retrieve summarized persons that match the given search filters and return them with optional pagination.
+
         Parameters:
             first_name (str): Partial or full first name to filter by (optional).
             last_name (str): Partial or full last name to filter by (optional).
@@ -1553,7 +1550,7 @@ class EMPIService:
             data_source (str): Data source name to filter records by (optional).
             skip (int | None): Number of results to skip for pagination (optional).
             take (int | None): Maximum number of results to return for pagination (optional).
-        
+
         Returns:
             persons (list[PersonSummaryDict]): A list of person summaries. Each summary contains:
                 - `uuid` (str): Person UUID.
@@ -2054,11 +2051,10 @@ class EMPIService:
                 )
 
     def estimate_export_count(self) -> int:
-        """
-        Estimate the number of potential match pairs that will be exported.
-        
+        """Estimate the number of potential match pairs that will be exported.
+
         Runs a database count using the same join criteria as the export to provide an estimate for progress reporting.
-        
+
         Returns:
             estimated_count (int): Number of SplinkResult rows (potential match pairs) that will be exported.
         """
@@ -2122,16 +2118,21 @@ class EMPIService:
     def _format_pagination_clauses(
         self, skip: int | None, take: int | None
     ) -> tuple[sql.SQL, sql.SQL]:
-        """
-        Constructs SQL OFFSET and LIMIT clauses for pagination.
-        
+        """Constructs SQL OFFSET and LIMIT clauses for pagination.
+
         Parameters:
             skip (int | None): Number of rows to skip (OFFSET). If None, no OFFSET clause is produced.
             take (int | None): Maximum number of rows to return (LIMIT). If None, no LIMIT clause is produced.
-        
+
         Returns:
             tuple[offset_clause, limit_clause] (tuple[sql.SQL, sql.SQL]): Two `sql.SQL` objects: the first is the OFFSET clause (possibly empty), the second is the LIMIT clause (possibly empty).
         """
-        limit_clause = sql.SQL(f"limit {int(take)}" if take is not None else "")
-        offset_clause = sql.SQL(f"offset {int(skip)}" if skip is not None else "")
+        offset_clause = sql.SQL("")
+        limit_clause = sql.SQL("")
+        if skip is not None and skip >= 0:
+            offset_clause = sql.SQL("offset {offset}").format(
+                offset=sql.Literal(int(skip))
+            )
+        if take is not None and take >= 0:
+            limit_clause = sql.SQL("limit {limit}").format(limit=sql.Literal(int(take)))
         return offset_clause, limit_clause

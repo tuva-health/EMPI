@@ -565,9 +565,8 @@ class Matcher:
         return df
 
     def update_splink_settings(self, job: Job) -> None:
-        """
-        Modify Splink blocking rules to scope matches to the provided Job and apply configured overrides.
-        
+        """Modify Splink blocking rules to scope matches to the provided Job and apply configured overrides.
+
         Appends job-specific comparisons to each blocking rule so a pair is considered only if at least one record comes from the given job, replaces the config's blocking_rules_to_generate_predictions with these scoped rules, and updates the config with the Matcher instance's Splink overrides.
         """
         config = job.config
