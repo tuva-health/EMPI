@@ -2118,7 +2118,7 @@ class EMPIService:
 
     def _format_pagination_clauses(
         self, skip: int | None, take: int | None
-    ) -> tuple[sql.SQL, sql.SQL]:
+    ) -> tuple[sql.Composed | sql.SQL, sql.Composed | sql.SQL]:
         """Constructs SQL OFFSET and LIMIT clauses for pagination.
 
         Parameters:
@@ -2128,8 +2128,8 @@ class EMPIService:
         Returns:
             tuple[offset_clause, limit_clause] (tuple[sql.SQL, sql.SQL]): Two `sql.SQL` objects: the first is the OFFSET clause (possibly empty), the second is the LIMIT clause (possibly empty).
         """
-        offset_clause = sql.SQL("")
-        limit_clause = sql.SQL("")
+        offset_clause: sql.Composed | sql.SQL = sql.SQL("")
+        limit_clause: sql.Composed | sql.SQL = sql.SQL("")
         if skip is not None and skip >= 0:
             offset_clause = sql.SQL("offset {offset}").format(
                 offset=sql.Literal(int(skip))
