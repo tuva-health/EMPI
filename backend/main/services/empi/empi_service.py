@@ -1242,9 +1242,9 @@ class EMPIService:
         self.logger.info(f"Marked MatchGroup {match_group.id} as matched")
 
     def validate_person_update(self, person_update: PersonUpdateDict) -> bool:
-        assert "new_person_record_ids" in person_update, (
-            "new_person_record_ids is required in PersonUpdate"
-        )
+        assert (
+            "new_person_record_ids" in person_update
+        ), "new_person_record_ids is required in PersonUpdate"
 
         if person_update.get("uuid") and not person_update.get("version"):
             raise InvalidPersonUpdate(
