@@ -60,6 +60,8 @@ export interface PersonMatchState {
 
     // Indexed by Record ID
     expandedRecords: Record<string, Record<string, PersonRecordWithMetadata>>;
+
+    isSidebarOpen: boolean;
   };
 }
 
@@ -105,6 +107,8 @@ export interface PersonMatchActions {
       record: PersonRecordWithMetadata,
     ) => void;
     clearExpandedRecords: () => void;
+
+    toggleSidebar: (isOpen?: boolean) => void;
   };
 }
 
@@ -129,6 +133,7 @@ export const defaultInitState: PersonMatchState = {
     selectedPersonId: null,
 
     expandedRecords: {},
+    isSidebarOpen: true,
   },
 };
 
@@ -280,15 +285,22 @@ export const createPersonMatchSlice =
        * Select PotentialMatch or Person, depending on matchMode
        */
       selectSummary: (id: string): void => {
-        if (get().personMatch.matchMode) {
-          set((state) => {
+        set((state) => {
+          const expandedRecords = state.personMatch.expandedRecords;
+
+          if (get().personMatch.matchMode) {
             state.personMatch.selectedPotentialMatchId = id;
-          });
-        } else {
-          set((state) => {
+          } else {
             state.personMatch.selectedPersonId = id;
-          });
-        }
+          }
+
+          if (
+            id in expandedRecords &&
+            Object.keys(expandedRecords[id]).length > 0
+          ) {
+            state.personMatch.isSidebarOpen = false;
+          }
+        });
       },
 
       /**
@@ -601,6 +613,15 @@ export const createPersonMatchSlice =
               },
             };
           }
+
+          if (
+            Object.keys(state.personMatch.expandedRecords[selectedSummaryId])
+              ?.length === 0
+          ) {
+            state.personMatch.isSidebarOpen = true;
+          } else {
+            state.personMatch.isSidebarOpen = false;
+          }
         });
       },
 
@@ -609,6 +630,8 @@ export const createPersonMatchSlice =
           const matchMode = state.personMatch.matchMode;
           const selectedPId = state.personMatch.selectedPersonId;
           const selectedPMId = state.personMatch.selectedPotentialMatchId;
+
+          state.personMatch.isSidebarOpen = true;
 
           if (matchMode) {
             if (selectedPMId) {
@@ -619,6 +642,13 @@ export const createPersonMatchSlice =
               delete state.personMatch.expandedRecords[selectedPId];
             }
           }
+        });
+      },
+
+      toggleSidebar: (isOpen?: boolean): void => {
+        set((state) => {
+          state.personMatch.isSidebarOpen =
+            isOpen ?? !state.personMatch.isSidebarOpen;
         });
       },
     },

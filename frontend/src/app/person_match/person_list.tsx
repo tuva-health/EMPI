@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/providers/app_store_provider";
@@ -13,15 +13,16 @@ import PersonListFilterDrawer from "@/components/person-list-filter-drawer";
 
 export const PersonList: React.FC = () => {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(true);
 
   const {
     matchMode,
     searchTerms,
     selectSummary,
+    toggleSidebar,
     personSummaries,
     clearSearchTerms,
     selectedPersonId,
+    isSidebarOpen: isOpen,
     potentialMatchSummaries,
     selectedPotentialMatchId,
   } = useAppStore((state) => state.personMatch);
@@ -30,10 +31,6 @@ export const PersonList: React.FC = () => {
   const personsTitle = isOpen ? "Persons" : "Person";
   const listTitle = matchMode ? matchesTitle : personsTitle;
   const summaries = matchMode ? potentialMatchSummaries : personSummaries;
-
-  const toggleSidebar = (): void => {
-    setIsOpen(!isOpen);
-  };
 
   const getPersonName = (s: PersonSummary | PotentialMatchSummary): string => {
     return [s.last_name, s.first_name].filter(Boolean).join(", ");
@@ -77,7 +74,7 @@ export const PersonList: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={toggleSidebar}
+          onClick={() => toggleSidebar()}
           className={`h-10 ${isOpen ? "w-full" : "w-10"}`}
         >
           <PanelLeftClose className={`h-4 w-4 ${isOpen ? "" : "rotate-180"}`} />
