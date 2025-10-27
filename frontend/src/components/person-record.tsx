@@ -31,7 +31,13 @@ const PersonRecordRow: React.FC<PersonRecordRowProps> = ({
   bgClassName,
   draggable,
 }) => {
-  const { toggleExpandedRecord } = useAppStore((state) => state.personMatch);
+  const {
+    matchMode,
+    expandedRecords,
+    selectedPersonId,
+    selectedPotentialMatchId,
+    toggleExpandedRecord,
+  } = useAppStore((state) => state.personMatch);
 
   const rowRef = useRef<HTMLTableRowElement>(null);
   const handleRef = useRef<HTMLTableCellElement>(null);
@@ -40,6 +46,14 @@ const PersonRecordRow: React.FC<PersonRecordRowProps> = ({
     record.highest_match_probability,
     true,
   );
+
+  const isExpanded = matchMode
+    ? selectedPotentialMatchId &&
+      selectedPotentialMatchId in expandedRecords &&
+      record.id in expandedRecords[selectedPotentialMatchId]
+    : selectedPersonId &&
+      selectedPersonId in expandedRecords &&
+      record.id in expandedRecords[selectedPersonId];
 
   const formatDate = (date: string | undefined): string => {
     if (!date) return "";
@@ -90,7 +104,7 @@ const PersonRecordRow: React.FC<PersonRecordRowProps> = ({
       onClick={handleToggleRecord}
       className={`h-9 cursor-pointer hover:bg-accenttransition-all ${
         isDragging ? "opacity-50 bg-gray-100" : ""
-      }`}
+      } ${isExpanded ? "bg-accent" : ""}`}
     >
       <TableCell
         ref={handleRef}
