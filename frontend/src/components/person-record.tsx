@@ -102,7 +102,7 @@ const PersonRecordRow: React.FC<PersonRecordRowProps> = ({
     <TableRow
       ref={rowRef}
       onClick={handleToggleRecord}
-      className={`h-9 cursor-pointer hover:bg-accenttransition-all ${
+      className={`h-9 cursor-pointer hover:bg-accent transition-all ${
         isDragging ? "opacity-50 bg-gray-100" : ""
       } ${isExpanded ? "bg-accent" : ""}`}
     >

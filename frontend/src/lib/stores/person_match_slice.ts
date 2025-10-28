@@ -62,6 +62,7 @@ export interface PersonMatchState {
     expandedRecords: Record<string, Record<string, PersonRecordWithMetadata>>;
 
     isSidebarOpen: boolean;
+    isMergeModalOpen: boolean;
   };
 }
 
@@ -100,7 +101,7 @@ export interface PersonMatchActions {
     /**
      * Creates a new person in the current potential match
      */
-    createNewPerson: (potentialMatchId: string) => void;
+    createNewPerson: (potentialMatchId: string, merge?: boolean) => void;
 
     toggleExpandedRecord: (
       id: string,
@@ -109,6 +110,10 @@ export interface PersonMatchActions {
     clearExpandedRecords: () => void;
 
     toggleSidebar: (isOpen?: boolean) => void;
+
+    openMergeModal: () => void;
+    closeMergeModal: () => void;
+    mergePersons: (targetPersonId: string) => void;
   };
 }
 
@@ -134,6 +139,7 @@ export const defaultInitState: PersonMatchState = {
 
     expandedRecords: {},
     isSidebarOpen: true,
+    isMergeModalOpen: false,
   },
 };
 
@@ -552,7 +558,7 @@ export const createPersonMatchSlice =
       /**
        * Creates a new person in the current potential match
        */
-      createNewPerson: (potentialMatchId: string): void => {
+      createNewPerson: (potentialMatchId: string, merge?: boolean): void => {
         set((state) => {
           const potentialMatch =
             state.personMatch.currentPotentialMatches[potentialMatchId];
@@ -575,7 +581,24 @@ export const createPersonMatchSlice =
             created: new Date(),
             records: [],
           };
+
+          if (merge) {
+            const allRecords: PersonRecordWithMetadata[] = [];
+
+            for (const person of Object.values(potentialMatch.persons)) {
+              if (person.id !== newPersonId) {
+                allRecords.push(...person.records);
+                person.records = [];
+              }
+            }
+
+            potentialMatch.persons[newPersonId].records.push(...allRecords);
+          }
         });
+
+        if (merge) {
+          get().personMatch.closeMergeModal();
+        }
       },
 
       toggleExpandedRecord: (
@@ -650,6 +673,72 @@ export const createPersonMatchSlice =
           state.personMatch.isSidebarOpen =
             isOpen ?? !state.personMatch.isSidebarOpen;
         });
+      },
+
+      openMergeModal: (): void => {
+        set((state) => {
+          state.personMatch.isMergeModalOpen = true;
+        });
+      },
+
+      closeMergeModal: (): void => {
+        set((state) => {
+          state.personMatch.isMergeModalOpen = false;
+        });
+      },
+
+      mergePersons: (targetPersonId: string): void => {
+        const { matchMode, selectedPotentialMatchId, currentPotentialMatches } =
+          get().personMatch;
+
+        if (
+          !matchMode ||
+          !selectedPotentialMatchId ||
+          !(selectedPotentialMatchId in currentPotentialMatches)
+        ) {
+          console.error(
+            "Cannot merge persons: not in match mode or no potential match selected",
+          );
+          return;
+        }
+
+        set((state) => {
+          const currentMatch =
+            state.personMatch.currentPotentialMatches[selectedPotentialMatchId];
+
+          if (!currentMatch) {
+            console.error("Current PotentialMatch does not exist");
+            return;
+          }
+
+          // Collect all records from all persons except the target
+          const allRecords: PersonRecordWithMetadata[] = [];
+          // const personsToRemove: string[] = [];
+
+          for (const person of Object.values(currentMatch.persons)) {
+            if (person.id !== targetPersonId) {
+              allRecords.push(...person.records);
+              person.records = [];
+              // personsToRemove.push(person.id);
+            }
+          }
+
+          // Add all records to the target person
+          const targetPerson = currentMatch.persons[targetPersonId];
+
+          if (targetPerson) {
+            targetPerson.records.push(...allRecords);
+          }
+
+          // Remove the other persons
+          // for (const personId of personsToRemove) {
+          //   delete currentMatch.persons[personId];
+          // }
+        });
+
+        // TODO: Update the PotentialMatch API with the new records
+
+        get().personMatch.closeMergeModal();
       },
     },
   });

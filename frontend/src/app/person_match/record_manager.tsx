@@ -4,10 +4,11 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/providers/app_store_provider";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, FolderSymlink } from "lucide-react";
 import { getRoute, Route } from "@/lib/routes";
 import { Table, TableBody } from "@/components/ui/table";
 import { PersonRow, RecordTableHeader } from "@/components/person-record";
+import { MergePersonsModal } from "@/components/merge-persons-modal";
 import {
   PersonRecordWithMetadata,
   PotentialMatchWithMetadata,
@@ -21,8 +22,10 @@ export const RecordManager: React.FC = () => {
     matchMode,
     selectSummary,
     currentPersons,
+    openMergeModal,
     createNewPerson,
     personSummaries,
+    isMergeModalOpen,
     potentialMatches,
     selectedPersonId,
     movePersonRecord,
@@ -115,7 +118,7 @@ export const RecordManager: React.FC = () => {
     <div className="flex flex-col w-full">
       <div className="flex flex-row-reverse items-center gap-4 p-3 border-b">
         {matchMode && !!potentialMatch?.id && (
-          <div className="flex items-center gap-2 px-6">
+          <div className="flex items-center gap-4 px-6">
             {isUpdated && (
               <Button className="h-10" variant="ghost" onClick={handleReset}>
                 Cancel
@@ -129,6 +132,21 @@ export const RecordManager: React.FC = () => {
             >
               Save
             </Button>
+
+            {matchMode && (
+              <Button
+                variant="outline"
+                className="h-10 disabled:cursor-not-allowed disabled:pointer-events-auto disabled:hover:bg-transparent"
+                onClick={openMergeModal}
+                disabled={
+                  !potentialMatch?.id ||
+                  Object.keys(potentialMatch.persons).length < 2
+                }
+              >
+                <FolderSymlink />
+                Merge Persons
+              </Button>
+            )}
           </div>
         )}
 
@@ -186,6 +204,15 @@ export const RecordManager: React.FC = () => {
           </p>
         </div>
       )}
+
+      {matchMode &&
+        !!potentialMatch?.id &&
+        Object.keys(potentialMatch.persons).length > 1 && (
+          <MergePersonsModal
+            isOpen={isMergeModalOpen}
+            persons={Object.values(potentialMatch.persons)}
+          />
+        )}
     </div>
   );
 };
