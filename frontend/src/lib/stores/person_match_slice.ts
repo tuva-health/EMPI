@@ -114,6 +114,8 @@ export interface PersonMatchActions {
     openMergeModal: () => void;
     closeMergeModal: () => void;
     mergePersons: (targetPersonId: string) => void;
+
+    removePerson: (id: string) => void;
   };
 }
 
@@ -717,7 +719,13 @@ export const createPersonMatchSlice =
 
           for (const person of Object.values(currentMatch.persons)) {
             if (person.id !== targetPersonId) {
-              allRecords.push(...person.records);
+              allRecords.push(
+                ...person.records.map((r) => ({
+                  ...r,
+                  person_id: targetPersonId,
+                })),
+              );
+
               person.records = [];
               // personsToRemove.push(person.id);
             }
@@ -739,6 +747,27 @@ export const createPersonMatchSlice =
         // TODO: Update the PotentialMatch API with the new records
 
         get().personMatch.closeMergeModal();
+      },
+
+      removePerson: (id: string): void => {
+        set((state) => {
+          const selectedPotentialMatchId =
+            state.personMatch.selectedPotentialMatchId;
+
+          if (
+            !selectedPotentialMatchId ||
+            !(
+              selectedPotentialMatchId in
+              state.personMatch.currentPotentialMatches
+            )
+          ) {
+            return;
+          }
+
+          delete state.personMatch.currentPotentialMatches[
+            selectedPotentialMatchId
+          ].persons[id];
+        });
       },
     },
   });

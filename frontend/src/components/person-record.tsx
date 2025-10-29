@@ -2,6 +2,7 @@ import { useRef, Fragment, useEffect } from "react";
 
 import { useDrag, useDrop } from "@react-aria/dnd";
 import {
+  Trash2,
   CircleCheck,
   // TODO: Enable this when we implement the Person details feature
   // Pencil,
@@ -135,17 +136,21 @@ interface PersonRowProps {
   person: PersonWithMetadata;
   ndx: number;
   matchMode: boolean;
+  personsCount: number;
   onRecordDrop?: (
     personRecord: PersonRecordWithMetadata,
     toPersonId: string,
   ) => void;
+  removePerson: (id: string) => void;
 }
 
 export const PersonRow: React.FC<PersonRowProps> = ({
   person,
   ndx,
   matchMode,
+  personsCount,
   onRecordDrop,
+  removePerson,
 }: PersonRowProps) => {
   const ref = useRef(null);
 
@@ -197,6 +202,11 @@ export const PersonRow: React.FC<PersonRowProps> = ({
     ? parseInt(person.id.replace("new-person-", ""))
     : undefined;
   const displayText = isNewPerson ? `New Person ${personIndex}` : person.id;
+  const isRemoveable = !person.records.length && personsCount > 1;
+
+  const handleRemovePerson = (): void => {
+    removePerson(person.id);
+  };
 
   return (
     <Fragment>
@@ -206,9 +216,21 @@ export const PersonRow: React.FC<PersonRowProps> = ({
         {...dropProps}
       >
         <TableCell className={`${bgClassName}`}></TableCell>
-        <TableCell colSpan={8} className={`${bgClassNameMuted}`}>
+        <TableCell
+          colSpan={!isRemoveable ? 7 : 6}
+          className={`${bgClassNameMuted}`}
+        >
           {displayText}
         </TableCell>
+
+        {isRemoveable && (
+          <TableCell className={`${bgClassNameMuted}`}>
+            <Trash2
+              className="w-4 h-4 ml-auto mr-4 cursor-pointer"
+              onClick={handleRemovePerson}
+            />
+          </TableCell>
+        )}
 
         {/* <TableCell className={`${bgClassNameMuted}`}>
           <div className="w-[48px] h-[36px]"></div>

@@ -20,6 +20,7 @@ export const RecordManager: React.FC = () => {
 
   const {
     matchMode,
+    removePerson,
     selectSummary,
     currentPersons,
     openMergeModal,
@@ -173,7 +174,9 @@ export const RecordManager: React.FC = () => {
                     person={person}
                     ndx={ndx}
                     matchMode={matchMode}
+                    removePerson={removePerson}
                     onRecordDrop={handleRecordDrop}
+                    personsCount={renderedPersons.length}
                   />
                 ))}
               </TableBody>
