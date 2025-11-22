@@ -72,6 +72,15 @@ Configuring the Tuva EMPI backend is primarily done with a JSON file:
 }
 ```
 
+    // Matching service settings (required)
+    "matching_service": {
+        "k8s_job_runner": {
+            // The namespace where matching jobs should be created (optional, defaults to "default")
+            "job_namespace": "tuva-empi",
+           
+        }
+    }
+
 See [local.json.example](https://github.com/tuva-health/tuva_empi/blob/main/backend/config/local.json.example) for a valid JSON example.
 
 There are also two other environment variables:
