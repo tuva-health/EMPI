@@ -140,6 +140,7 @@ class K8sJobRunnerSecretVolumeConfig(BaseModel):
 class K8sJobRunnerConfig(BaseModel):
     job_image: str = ""
     job_image_pull_policy: Literal["Always", "IfNotPresent", "Never"]
+    job_namespace: Optional[str] = None
     job_config_secret_volume: Optional[K8sJobRunnerSecretVolumeConfig] = None
     job_service_account_name: Optional[str] = None
 
