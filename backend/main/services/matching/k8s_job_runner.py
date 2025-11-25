@@ -31,7 +31,7 @@ class K8sJobRunner(JobRunner):
         version = config.version
         runner_config = config.matching_service.k8s_job_runner
         assert runner_config
-        
+
         namespace = runner_config.job_namespace
         if namespace:
             # Override the default client with a namespace-scoped one
