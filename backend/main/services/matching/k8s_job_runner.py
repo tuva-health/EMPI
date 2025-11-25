@@ -37,9 +37,6 @@ class K8sJobRunner(JobRunner):
             # Override the default client with a namespace-scoped one
             self.k8s = K8sJobClient(namespace=namespace)
 
-
-   
-
         secret_volume = (
             SecretVolume(
                 secret_name=runner_config.job_config_secret_volume.secret_name,
