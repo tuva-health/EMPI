@@ -13,12 +13,12 @@ const config: Config = {
   url: "https://your-docusaurus-site.example.com",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/empi/",
+  baseUrl: "/EMPI/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "tuva-health", // Usually your GitHub org/user name.
-  projectName: "tuva_empi", // Usually your repo name.
+  projectName: "EMPI", // Usually your repo name.
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
